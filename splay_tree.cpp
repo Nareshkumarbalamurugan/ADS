@@ -104,3 +104,174 @@ int main() {
     preOrder(root);
     return 0;
 }
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    #include <iostream>
+using namespace std;
+
+// Node structure for the Splay Tree
+class SplayTreeNode {
+public:
+    int key;
+    SplayTreeNode* left;
+    SplayTreeNode* right;
+    SplayTreeNode* parent;
+
+    SplayTreeNode(int key) {
+        this->key = key;
+        this->left = nullptr;
+        this->right = nullptr;
+        this->parent = nullptr;
+    }
+};
+
+// Splay Tree class
+class TopDownSplayTree {
+private:
+    SplayTreeNode* root;
+
+    // Function to perform rotations
+    void rotate(SplayTreeNode* x) {
+        SplayTreeNode* p = x->parent;
+        SplayTreeNode* g = p->parent;
+
+        if (x == p->left) {
+            // Right rotation
+            p->left = x->right;
+            if (x->right) x->right->parent = p;
+            x->right = p;
+        } else {
+            // Left rotation
+            p->right = x->left;
+            if (x->left) x->left->parent = p;
+            x->left = p;
+        }
+
+        p->parent = x;
+        x->parent = g;
+
+        // If g is not null, connect the new subtree
+        if (g) {
+            if (g->left == p) {
+                g->left = x;
+            } else {
+                g->right = x;
+            }
+        } else {
+            root = x; // x is now the root
+        }
+    }
+
+    // Top-Down splay operation to bring x to root
+    void topDownSplay(SplayTreeNode* x) {
+        while (x->parent != nullptr) {
+            SplayTreeNode* p = x->parent;
+            SplayTreeNode* g = p->parent;
+
+            if (g == nullptr) {
+                // Zig operation (single rotation)
+                rotate(x);
+            } else if ((x == p->left && p == g->left) || (x == p->right && p == g->right)) {
+                // Zig-zig operation (double rotation)
+                rotate(p);
+                rotate(x);
+            } else {
+                // Zig-zag operation (double rotation)
+                rotate(x);
+                rotate(x);
+            }
+        }
+    }
+
+public:
+    TopDownSplayTree() {
+        root = nullptr;
+    }
+
+    // Insert a new key into the tree
+    void insert(int key) {
+        if (root == nullptr) {
+            root = new SplayTreeNode(key);
+            return;
+        }
+
+        SplayTreeNode* current = root;
+        SplayTreeNode* parent = nullptr;
+
+        while (current != nullptr) {
+            parent = current;
+            if (key < current->key) {
+                current = current->left;
+            } else {
+                current = current->right;
+            }
+        }
+
+        SplayTreeNode* newNode = new SplayTreeNode(key);
+        if (key < parent->key) {
+            parent->left = newNode;
+        } else {
+            parent->right = newNode;
+        }
+        newNode->parent = parent;
+
+        // Perform the top-down splay operation
+        topDownSplay(newNode);
+    }
+
+    // Search for a key and splay the found node to the root
+    void search(int key) {
+        SplayTreeNode* current = root;
+
+        while (current != nullptr && current->key != key) {
+            if (key < current->key) {
+                current = current->left;
+            } else {
+                current = current->right;
+            }
+        }
+
+        if (current != nullptr) {
+            topDownSplay(current);
+        }
+    }
+
+    // Helper function to print the tree (in-order traversal)
+    void inorder(SplayTreeNode* node) {
+        if (node == nullptr) return;
+        inorder(node->left);
+        cout << node->key << " ";
+        inorder(node->right);
+    }
+
+    void printTree() {
+        inorder(root);
+        cout << endl;
+    }
+};
+
+// Main function to test the Splay Tree
+int main() {
+    TopDownSplayTree tree;
+
+    tree.insert(10);
+    tree.insert(20);
+    tree.insert(5);
+    tree.insert(6);
+    tree.insert(15);
+
+    cout << "In-order traversal after inserts: ";
+    tree.printTree();
+
+    tree.search(15);
+    cout << "In-order traversal after searching for 15: ";
+    tree.printTree();
+
+    tree.search(5);
+    cout << "In-order traversal after searching for 5: ";
+    tree.printTree();
+
+    return 0;
+}
+
