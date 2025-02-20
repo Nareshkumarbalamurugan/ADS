@@ -9,20 +9,20 @@ struct Node {
 };
 
 int height(Node* N) {
-    return (N == nullptr) ? 0 : N->height;
+    return (N == NULL) ? 0 : N->height;
 }
 
 Node* newNode(int key) {
     Node* node = new Node();
     node->key = key;
-    node->left = nullptr;
-    node->right = nullptr;
+    node->left = NULL;
+    node->right = NULL;
     node->height = 1;
     return node;
 }
 
 int getBalance(Node* N) {
-    return (N == nullptr) ? 0 : height(N->left) - height(N->right);
+    return (N == NULL) ? 0 : height(N->left) - height(N->right);
 }
 
 Node* rightRotate(Node* y) {
@@ -52,7 +52,7 @@ Node* leftRotate(Node* x) {
 }
 
 Node* insert(Node* node, int key) {
-    if (node == nullptr)
+    if (node == NULL)
         return newNode(key);
     
     if (key < node->key)
@@ -87,13 +87,13 @@ Node* insert(Node* node, int key) {
 
 Node* minValueNode(Node* node) {
     Node* current = node;
-    while (current->left != nullptr)
+    while (current->left != NULL)
         current = current->left;
     return current;
 }
 
 Node* deleteNode(Node* root, int key) {
-    if (root == nullptr)
+    if (root == NULL)
         return root;
     
     if (key < root->key)
@@ -101,11 +101,11 @@ Node* deleteNode(Node* root, int key) {
     else if (key > root->key)
         root->right = deleteNode(root->right, key);
     else {
-        if ((root->left == nullptr) || (root->right == nullptr)) {
+        if ((root->left == NULL) || (root->right == NULL)) {
             Node* temp = root->left ? root->left : root->right;
-            if (temp == nullptr) {
+            if (temp == NULL) {
                 temp = root;
-                root = nullptr;
+                root = NULL;
             } else
                 *root = *temp;
             delete temp;
@@ -116,7 +116,7 @@ Node* deleteNode(Node* root, int key) {
         }
     }
     
-    if (root == nullptr)
+    if (root == NULL)
         return root;
     
     root->height = 1 + max(height(root->left), height(root->right));
@@ -143,7 +143,7 @@ Node* deleteNode(Node* root, int key) {
 }
 
 void inOrder(Node* root) {
-    if (root != nullptr) {
+    if (root != NULL) {
         inOrder(root->left);
         cout << root->key << " ";
         inOrder(root->right);
@@ -151,7 +151,7 @@ void inOrder(Node* root) {
 }
 
 int main() {
-    Node* root = nullptr;
+    Node* root = NULL;
     
     root = insert(root, 10);
     root = insert(root, 20);
