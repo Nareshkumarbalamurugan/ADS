@@ -1,44 +1,41 @@
 #include <iostream>
-#include <bitset>
-using namespace std;
+#include <vector>
 
 class BinaryCounter {
 private:
-    int value;
-    int totalCost;
+    std::vector<bool> counter;
 
 public:
-    BinaryCounter() {
-        value = 0;
-        totalCost = 0;
+    BinaryCounter(int bits) {
+        counter.resize(bits, false);
     }
 
     void increment() {
-        int cost = 0;
-        int temp = value;
-        while (temp % 2 == 1) {
-            cost++;
-            temp /= 2;
+        int i = 0;
+        while (i < counter.size() && counter[i]) {
+            counter[i] = false;
+            i++;
         }
-        cost++;
-        value++;
-
-        totalCost += cost;
-        cout << "Current value (binary): " << std::bitset<8>(value) << " | Cost: " << cost << endl;
+        if (i < counter.size()) {
+            counter[i] = true;
+        }
     }
 
-    void getTotalCost() {
-        cout << "Total cost after all increments: " << totalCost << endl;
+    void display() {
+        for (int i = counter.size() - 1; i >= 0; --i) {
+            std::cout << counter[i];
+        }
+        std::cout << std::endl;
     }
 };
 
 int main() {
-    BinaryCounter counter;
+    BinaryCounter counter(5);
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 32; ++i) {
         counter.increment();
+        counter.display();
     }
 
-    counter.getTotalCost();
     return 0;
 }
