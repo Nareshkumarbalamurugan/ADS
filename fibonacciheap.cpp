@@ -1,27 +1,29 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
 using namespace std;
 
-struct Node {
-    int key;
+// Fibonacci Heap Node Structure
+template <typename T>
+struct FibNode {
+    T key;
     int degree;
-    Node* parent;
-    Node* child;
-    Node* left;
-    Node* right;
-    bool mark;
-    
-    Node(int k) : key(k), degree(0), parent(nullptr), child(nullptr), mark(false) {
+    FibNode *parent, *child, *left, *right;
+    bool marked;
+
+    FibNode(T val) : key(val), degree(0), parent(nullptr), child(nullptr), marked(false) {
         left = right = this;
     }
 };
 
+// Fibonacci Heap Class
+template <typename T>
 class FibonacciHeap {
 private:
-    Node* minNode;
+    FibNode<T>* minNode;
     int nodeCount;
-    
-    void link(Node* y, Node* x) {
+
+    void link(FibNode<T>* y, FibNode<T>* x) {
         y->left->right = y->right;
         y->right->left = y->left;
         y->parent = x;
@@ -29,141 +31,171 @@ private:
         if (!x->child) {
             x->child = y;
         } else {
-            y->right = x->child;
-            y->left = x->child->left;
-            x->child->left->right = y;
-            x->child->left = y;
+            y->right = x->child->right;
+            y->left = x->child;
+            x->child->right->left = y;
+            x->child->right = y;
         }
         x->degree++;
-        y->mark = false;
+        y->marked = false;
     }
-    
+
     void consolidate() {
-        int maxDegree = log2(nodeCount) + 1;
-        Node* A[maxDegree] = {nullptr};
+        int maxDegree = static_cast<int>(log2(nodeCount)) + 1;
+        vector<FibNode<T>*> degreeTable(maxDegree, nullptr);
         
-        Node* start = minNode;
-        Node* x = start;
-        do {
-            Node* next = x->right;
+        vector<FibNode<T>*> rootList;
+        FibNode<T>* x = minNode;
+        if (x) {
+            do {
+                rootList.push_back(x);
+                x = x->right;
+            } while (x != minNode);
+        }
+        
+        for (FibNode<T>* w : rootList) {
+            x = w;
             int d = x->degree;
-            while (A[d]) {
-                Node* y = A[d];
-                if (x->key > y->key)
-                    swap(x, y);
+            while (degreeTable[d]) {
+                FibNode<T>* y = degreeTable[d];
+                if (x->key > y->key) swap(x, y);
                 link(y, x);
-                A[d] = nullptr;
+                degreeTable[d] = nullptr;
                 d++;
             }
-            A[d] = x;
-            x = next;
-        } while (x != start);
+            degreeTable[d] = x;
+        }
         
         minNode = nullptr;
-        for (int i = 0; i < maxDegree; i++) {
-            if (A[i]) {
-                if (!minNode || A[i]->key < minNode->key)
-                    minNode = A[i];
+        for (FibNode<T>* node : degreeTable) {
+            if (node) {
+                if (!minNode || node->key < minNode->key) {
+                    minNode = node;
+                }
             }
         }
     }
-    
+
 public:
     FibonacciHeap() : minNode(nullptr), nodeCount(0) {}
-    
-    void insert(int key) {
-        Node* newNode = new Node(key);
+
+    void insert(T key) {
+        FibNode<T>* newNode = new FibNode<T>(key);
         if (!minNode) {
             minNode = newNode;
         } else {
-            newNode->right = minNode;
-            newNode->left = minNode->left;
-            minNode->left->right = newNode;
-            minNode->left = newNode;
-            if (key < minNode->key)
+            newNode->right = minNode->right;
+            newNode->left = minNode;
+            minNode->right->left = newNode;
+            minNode->right = newNode;
+            if (newNode->key < minNode->key) {
                 minNode = newNode;
+            }
         }
         nodeCount++;
     }
-    
-    int extractMin() {
-        if (!minNode) {
-            cout << "Heap is empty!" << endl;
-            return -1;
-        }
-        Node* oldMin = minNode;
-        int minKey = oldMin->key;
-        
+
+    T getMin() {
+        return minNode ? minNode->key : T();
+    }
+
+    void deleteMin() {
+        if (!minNode) return;
+        FibNode<T>* oldMin = minNode;
         if (oldMin->child) {
-            Node* child = oldMin->child;
+            FibNode<T>* child = oldMin->child;
             do {
-                Node* next = child->right;
-                child->left->right = child->right;
-                child->right->left = child->left;
-                child->right = minNode;
+                FibNode<T>* nextChild = child->right;
                 child->left = minNode->left;
+                child->right = minNode;
                 minNode->left->right = child;
                 minNode->left = child;
                 child->parent = nullptr;
-                child = next;
+                child = nextChild;
             } while (child != oldMin->child);
         }
-        
         oldMin->left->right = oldMin->right;
         oldMin->right->left = oldMin->left;
-        
         if (oldMin == oldMin->right) {
             minNode = nullptr;
         } else {
             minNode = oldMin->right;
             consolidate();
         }
-        
         delete oldMin;
         nodeCount--;
-        return minKey;
     }
-    
-    void printMin() {
-        if (minNode)
-            cout << "Minimum key: " << minNode->key << endl;
-        else
-            cout << "Heap is empty!" << endl;
+
+    void merge(FibonacciHeap<T>& other) {
+        if (!other.minNode) return;
+        if (!minNode) {
+            minNode = other.minNode;
+        } else {
+            minNode->right->left = other.minNode->left;
+            other.minNode->left->right = minNode->right;
+            minNode->right = other.minNode;
+            other.minNode->left = minNode;
+            if (other.minNode->key < minNode->key) {
+                minNode = other.minNode;
+            }
+        }
+        nodeCount += other.nodeCount;
+        other.minNode = nullptr;
+        other.nodeCount = 0;
+    }
+
+    bool isEmpty() {
+        return minNode == nullptr;
     }
 };
 
 int main() {
-    FibonacciHeap heap;
-    int choice, key;
+    FibonacciHeap<int> heap1, heap2;
+    int choice, value;
     
-    while (true) {
-        cout << "\nMenu:\n";
-        cout << "1. Insert\n";
-        cout << "2. Extract Min\n";
-        cout << "3. Print Min\n";
-        cout << "4. Exit\n";
-        cout << "Enter your choice: ";
+    do {
+        cout << "\nFibonacci Heap Menu";
+        cout << "\n1. Insert into Heap1";
+        cout << "\n2. Insert into Heap2";
+        cout << "\n3. Get Min from Heap1";
+        cout << "\n4. Delete Min from Heap1";
+        cout << "\n5. Merge Heap1 and Heap2";
+        cout << "\n6. Exit";
+        cout << "\nEnter your choice: ";
         cin >> choice;
         
         switch (choice) {
             case 1:
-                cout << "Enter key to insert: ";
-                cin >> key;
-                heap.insert(key);
+                cout << "Enter value: ";
+                cin >> value;
+                heap1.insert(value);
                 break;
             case 2:
-                cout << "Extracted min: " << heap.extractMin() << endl;
+                cout << "Enter value: ";
+                cin >> value;
+                heap2.insert(value);
                 break;
             case 3:
-                heap.printMin();
+                if (!heap1.isEmpty())
+                    cout << "Minimum in Heap1: " << heap1.getMin() << endl;
+                else
+                    cout << "Heap1 is empty" << endl;
                 break;
             case 4:
-                cout << "Exiting..." << endl;
-                return 0;
+                heap1.deleteMin();
+                cout << "Min deleted from Heap1" << endl;
+                break;
+            case 5:
+                heap1.merge(heap2);
+                cout << "Heaps merged successfully" << endl;
+                break;
+            case 6:
+                cout << "Exiting program." << endl;
+                break;
             default:
-                cout << "Invalid choice, try again." << endl;
+                cout << "Invalid choice. Try again." << endl;
         }
-    }
+    } while (choice != 6);
     
     return 0;
 }
