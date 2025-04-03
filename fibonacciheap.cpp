@@ -3,7 +3,7 @@
 #include <vector>
 using namespace std;
 
-// Fibonacci Heap Node Structure
+
 template <typename T>
 struct FibNode {
     T key;
@@ -16,7 +16,7 @@ struct FibNode {
     }
 };
 
-// Fibonacci Heap Class
+
 template <typename T>
 class FibonacciHeap {
 private:
