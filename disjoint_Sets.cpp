@@ -1,9 +1,11 @@
+#include <iostream>
 #include <vector>
+using namespace std;
 
 class DisjointSet {
 private:
-    std::vector<int> parent;
-    std::vector<int> rank;
+    vector<int> parent;
+    vector<int> rank;
 
 public:
     DisjointSet(int size) {
@@ -16,7 +18,7 @@ public:
 
     int find(int x) {
         if (parent[x] != x) {
-            parent[x] = find(parent[x]);
+            parent[x] = find(parent[x]); // Path compression
         }
         return parent[x];
     }
@@ -39,19 +41,19 @@ public:
     bool isConnected(int x, int y) {
         return find(x) == find(y);
     }
-}; 
+};
+
 int main() {
-    DisjointSet ds(10); // Create a disjoint set with 10 elements
+    DisjointSet ds(6); // 6 elements: 0 to 5
 
+    ds.unionSets(0, 1);
     ds.unionSets(1, 2);
-    ds.unionSets(2, 3);
+    ds.unionSets(3, 4);
     ds.unionSets(4, 5);
-    ds.unionSets(6, 7);
-    ds.unionSets(5, 6);
-    ds.unionSets(3, 7);
 
-    std::cout << "Is 1 connected to 7? " << (ds.isConnected(1, 7) ? "Yes" : "No") << std::endl;
-    std::cout << "Is 1 connected to 8? " << (ds.isConnected(1, 8) ? "Yes" : "No") << std::endl;
+    cout << "Is 0 connected to 2? " << (ds.isConnected(0, 2) ? "Yes" : "No") << endl;
+    cout << "Is 1 connected to 3? " << (ds.isConnected(1, 3) ? "Yes" : "No") << endl;
+    cout << "Is 3 connected to 5? " << (ds.isConnected(3, 5) ? "Yes" : "No") << endl;
 
     return 0;
 }
