@@ -1,0 +1,2 @@
+curl -L -O http://tinyurl.com/adsassess
+unzip adsassess
