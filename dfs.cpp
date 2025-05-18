@@ -1,74 +1,95 @@
 #include <iostream>
 #include <vector>
-#include <list>
-#include <algorithm>
+#include <stack>
 using namespace std;
-class Graph {
+
+// Recursive DFS function
+void dfsRecursive(int node, const vector<vector<int>>& adjMatrix, vector<bool>& visited) {
+    visited[node] = true;
+    cout << node << " ";
+
+    for (int i = 0; i < adjMatrix.size(); ++i) {
+        if (adjMatrix[node][i] == 1 && !visited[i]) {
+            dfsRecursive(i, adjMatrix, visited);
+        }
+    }
+}
+
+// Iterative DFS function
+void dfsIterative(int startNode, const vector<vector<int>>& adjMatrix) {
+    vector<bool> visited(adjMatrix.size(), false);
+    stack<int> s;
+
+    s.push(startNode);
+
+    while (!s.empty()) {
+        int node = s.top();
+        s.pop();
+
+        if (!visited[node]) {
+            visited[node] = true;
+            cout << node << " ";
+
+            for (int i = adjMatrix.size() - 1; i >= 0; --i) {
+                if (adjMatrix[node][i] == 1 && !visited[i]) {
+                    s.push(i);
+                }
+            }
+        }
+    }
+}
+
+int main() {
     int V;
-    list<int> *adj;
-    int time;
-    void DFSUtil(int u, vector<bool> &visited, vector<int> &disc, vector<int> &low,
-        vector<int> &parent, vector<bool> &articulation) {
-        int children = 0;
-        visited[u] = true;
-        disc[u] = low[u] = ++time;
-        for (int v : adj[u]) {
-            if (!visited[v]) {
-                children++;
-                parent[v] = u;
-                DFSUtil(v, visited, disc, low, parent, articulation);
-                low[u] = min(low[u], low[v]);
-                if (parent[u] == -1 && children > 1)
-                    articulation[u] = true;
-                if (parent[u] != -1 && low[v] >= disc[u])
-                    articulation[u] = true;
+    cout << "Enter the number of vertices: ";
+    cin >> V;
+
+    // Initialize adjacency matrix
+    vector<vector<int>> adjMatrix(V, vector<int>(V, 0));
+
+    cout << "Enter the adjacency matrix:\n";
+    for (int i = 0; i < V; ++i) {
+        for (int j = 0; j < V; ++j) {
+            cout << "Is there an edge from " << i << " to " << j << "? (1/0): ";
+            cin >> adjMatrix[i][j];
+        }
+    }
+
+    int choice;
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. DFS Recursive\n";
+        cout << "2. DFS Iterative\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        if (choice == 1 || choice == 2) {
+            int startNode;
+            cout << "Enter start node (0 to " << V - 1 << "): ";
+            cin >> startNode;
+
+            if (startNode < 0 || startNode >= V) {
+                cout << "Invalid start node!\n";
+                continue;
             }
-            else if (v != parent[u])
-                low[u] = min(low[u], disc[v]);
-        }
-    }
-public:
-    Graph(int V) {
-        this->V = V;
-        adj = new list<int>[V];
-        time = 0;
-    }
-    void addEdge(int u, int v) {
-        adj[u].push_back(v);
-        adj[v].push_back(u);
-    }
-    void findArticulationPoints() {
-        vector<bool> visited(V, false);
-        vector<int> disc(V), low(V), parent(V, -1);
-        vector<bool> articulation(V, false);
-        for (int i = 0; i < V; i++) {
-            if (!visited[i])
-                DFSUtil(i, visited, disc, low, parent, articulation);
-        }
-        cout << "\nArticulation points (cut vertices) are:\n";
-        bool found = false;
-        for (int i = 0; i < V; i++) {
-            if (articulation[i]) {
-                cout << i+1 << " ";
-                found = true;
+
+            if (choice == 1) {
+                vector<bool> visited(V, false);
+                cout << "DFS Recursive traversal: ";
+                dfsRecursive(startNode, adjMatrix, visited);
+                cout << endl;
+            } else if (choice == 2) {
+                cout << "DFS Iterative traversal: ";
+                dfsIterative(startNode, adjMatrix);
+                cout << endl;
             }
+        } else if (choice != 3) {
+            cout << "Invalid choice!\n";
         }
-        if (!found)
-            cout << "None (Graph is Biconnected)";
-        cout << endl;
-    }
-};
-int main() {            
-    int V, E;
-    cout << "Enter number of vertices and edges: ";
-    cin >> V>>E;
-    Graph g(V);
-    cout << "Enter " << E << " edges (as pairs u v):" << endl;
-    for (int i = 0; i < E; i++) {
-        int u, v;
-        cin >> u >> v;
-        g.addEdge(u-1, v-1);
-    }
-    g.findArticulationPoints();
+
+    } while (choice != 3);
+
+    cout << "Program exited.\n";
     return 0;
 }
